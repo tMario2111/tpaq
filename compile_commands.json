@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/home/neagu/cpp_proj/tpaq/build",
-  "command": "/usr/bin/c++  -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1 -DSFML_STATIC -isystem /home/neagu/vcpkg/installed/x64-linux/include    -std=gnu++17 -o CMakeFiles/tpaq.dir/main.cpp.o -c /home/neagu/cpp_proj/tpaq/main.cpp",
-  "file": "/home/neagu/cpp_proj/tpaq/main.cpp"
-}
-]

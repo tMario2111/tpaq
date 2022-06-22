@@ -4,7 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(tpaq)
 
-add_executable(tpaq main.cpp)
+add_executable(tpaq main.cpp
+    TexturePacker.hpp TexturePacker.cpp)
 
 find_package(SFML COMPONENTS graphics system CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
