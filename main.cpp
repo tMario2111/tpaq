@@ -1,4 +1,4 @@
-#include "TexturePacker.hpp"
+#include "source/TexturePacker.hpp"
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -9,17 +9,20 @@ int main(int argc, char* argv[])
     TexturePacker tp{};
 
     CLI::App app{};
-    app.set_version_flag("--version", "tpaq v1.0.0");
-
+    app.set_version_flag("--version", "tpaq v1.1.0");
     app.add_option("-f,--files", tp.files, "Texture files");
-    app.add_option("-d,--directories",tp.directories, "Directories containing texture files (non-recursive by default)");
+    app.add_option("-d,--directories", tp.directories, 
+        "Directories containing texture files (non-recursive by default)");
     app.add_option("-o,--output", tp.output, "Output file (.png & .json)")->required();
     app.add_option("-s,--size", tp.size, "Output texture maximum size")->required();
+    app.add_option("-b,--border", tp.border, "Border between textures (0 by default)");
 
-    app.add_flag("--remove_extensions", tp.remove_extensions, "Remove texture extensions in .json file");
+    app.add_flag("--keep_extensions", tp.keep_extensions, "Keep texture extensions in .json file");
     app.add_flag("--recursive", tp.recursive, "Recursive directory search");
 
+    std::cout << "Got here1\n";
     CLI11_PARSE(app, argc, argv);
+    std::cout << "Got here2\n";
 
     tp.run();
 

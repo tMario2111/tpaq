@@ -21,8 +21,9 @@ public:
     std::vector<std::string> directories;
     std::string output;
     unsigned int size;
+    unsigned int border = 0;
 
-    bool remove_extensions = true;
+    bool keep_extensions = false;
     bool recursive = false;
 
     void run();

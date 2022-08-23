@@ -1,6 +1,5 @@
 #include "TexturePacker.hpp"
 
-// For some reason including it in TexturePacker.hpp results in linking errors
 #define STB_RECT_PACK_IMPLEMENTATION
 #include <stb_rect_pack.h>
 
@@ -38,11 +37,11 @@ void TexturePacker::loadTextures()
         if (!textures.back()->texture.loadFromFile(file))
         {
             std::cout << "The file with path \"" << file << "\" cannot be opened\n";
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
 
-        auto name = file;
-        if (remove_extensions)
+        auto name = file.substr(file.find_last_of("/\\") + 1);
+        if (!keep_extensions)
             name = name.substr(0, name.find_last_of('.'));
         textures.back()->name = name;
 
@@ -59,8 +58,8 @@ void TexturePacker::pack()
 		rects.emplace_back(stbrp_rect{});
 		rects[i].x = 0;
 		rects[i].y = 0;
-		rects[i].w = textures[i]->texture.getSize().x;
-		rects[i].h = textures[i]->texture.getSize().y;
+		rects[i].w = textures[i]->texture.getSize().x + border;
+		rects[i].h = textures[i]->texture.getSize().y + border;
 		rects[i].id = static_cast<int>(i);
 		rects[i].was_packed = 0;
 	}
@@ -95,7 +94,7 @@ void TexturePacker::pack()
 	if (!success)
 	{
 		std::cout << "Increase atlas size or remove some textures and try again\n";
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	sf::RenderTexture texture{};
