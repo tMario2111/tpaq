@@ -1,6 +1,7 @@
 # tpaq
 
-tpaq is a simple to use command line texture packing utility.
+tpaq is a simple to use command line texture packing utility. It was made using `stb_rect_pack`, SFML and
+nlohmann-json.
 
 ## Example
 ```
