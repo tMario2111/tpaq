@@ -15,30 +15,30 @@
 class TexturePacker
 {
 public:
-    TexturePacker() = default;
+	TexturePacker() = default;
 
-    std::vector<std::string> files;
-    std::vector<std::string> directories;
-    std::string output;
-    unsigned int size;
-    unsigned int border = 0;
+	std::vector<std::string> files;
+	std::vector<std::string> directories;
+	std::string output;
+	unsigned int size;
+	unsigned int border = 0;
 
-    bool keep_extensions = false;
-    bool recursive = false;
+	bool keep_extensions = false;
+	bool recursive = false;
 
-    void run();
+	void run();
 
 private:
-    struct TextureFile
-    {
-        TextureFile() = default;
-        std::string name;
-        sf::Texture texture;
-        sf::Sprite sprite;
-    };
-    std::vector<std::unique_ptr<TextureFile>> textures;
+	struct TextureFile
+	{
+		TextureFile() = default;
+		std::string name;
+		sf::Texture texture;
+		sf::Sprite sprite;
+	};
+	std::vector<std::unique_ptr<TextureFile>> textures;
 
-    void loadTextures();
-    void pack();
-    void writeJson();
+	void loadTextures();
+	void pack();
+	void writeJson();
 };

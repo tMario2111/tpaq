@@ -5,53 +5,53 @@
 
 void TexturePacker::loadTextures()
 {
-    const auto processEntry = [&](const std::filesystem::directory_entry& entry)
-    {
-        if (!std::filesystem::is_regular_file(entry))
-            return;
+	const auto processEntry = [&](const std::filesystem::directory_entry& entry)
+	{
+		if (!std::filesystem::is_regular_file(entry))
+			return;
 
-        const auto extension = entry.path().extension().string();
-        if (extension == ".png" || extension == ".jpg")
-            files.push_back(entry.path().string());
-    };
+		const auto extension = entry.path().extension().string();
+		if (extension == ".png" || extension == ".jpg")
+			files.push_back(entry.path().string());
+	};
 
-    for (const auto& dir : directories)
-    {
-        if (recursive)
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(dir))
-                processEntry(entry);
-        else 
-            for (const auto& entry : std::filesystem::directory_iterator(dir))
-                processEntry(entry);
-    }
+	for (const auto& dir : directories)
+	{
+		if (recursive)
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(dir))
+				processEntry(entry);
+		else 
+			for (const auto& entry : std::filesystem::directory_iterator(dir))
+				processEntry(entry);
+	}
 
-    for (const auto& file : files)
-    {
-        if (!std::filesystem::is_regular_file(file))
-        {
-            std::cout << "\"" << file << "\" is not a file, skipping it\n";
-            continue;
-        }
+	for (const auto& file : files)
+	{
+		if (!std::filesystem::is_regular_file(file))
+		{
+			std::cout << "\"" << file << "\" is not a file, skipping it\n";
+			continue;
+		}
 
-        textures.push_back(std::make_unique<TextureFile>());
-        if (!textures.back()->texture.loadFromFile(file))
-        {
-            std::cout << "The file with path \"" << file << "\" cannot be opened\n";
-            exit(EXIT_FAILURE);
-        }
+		textures.push_back(std::make_unique<TextureFile>());
+		if (!textures.back()->texture.loadFromFile(file))
+		{
+			std::cout << "The file with path \"" << file << "\" cannot be opened\n";
+			exit(EXIT_FAILURE);
+		}
 
-        auto name = file.substr(file.find_last_of("/\\") + 1);
-        if (!keep_extensions)
-            name = name.substr(0, name.find_last_of('.'));
-        textures.back()->name = name;
+		auto name = file.substr(file.find_last_of("/\\") + 1);
+		if (!keep_extensions)
+			name = name.substr(0, name.find_last_of('.'));
+		textures.back()->name = name;
 
-        textures.back()->sprite.setTexture(textures.back()->texture);
-    }
+		textures.back()->sprite.setTexture(textures.back()->texture);
+	}
 }
 
 void TexturePacker::pack()
 {
-    stbrp_context context{};
+	stbrp_context context{};
 	std::vector<stbrp_rect> rects{};
 	for (auto i = 0u; i < textures.size(); i++)
 	{
@@ -64,13 +64,13 @@ void TexturePacker::pack()
 		rects[i].was_packed = 0;
 	}
 
-    std::vector<stbrp_node> nodes{};
+	std::vector<stbrp_node> nodes{};
 	nodes.resize(size * 2);
 	stbrp_init_target(&context, static_cast<int>(size), static_cast<int>(size),
-        nodes.data(), static_cast<int>(size) * 2);
+		nodes.data(), static_cast<int>(size) * 2);
 	stbrp_pack_rects(&context, rects.data(), textures.size());
 
-    sf::Vector2i size{};
+	sf::Vector2i size{};
 	for (auto i = 0u; i < textures.size(); i++)
 	{
 		if (rects[i].x + rects[i].w > size.x)
@@ -79,7 +79,7 @@ void TexturePacker::pack()
 			size.y = rects[i].y + rects[i].h;
 	}
 
-    bool success = true;
+	bool success = true;
 	for (unsigned int i = 0; i < textures.size(); i++)
 	{
 		if (rects[i].was_packed == 1)
@@ -109,7 +109,7 @@ void TexturePacker::pack()
 
 void TexturePacker::writeJson()
 {
-    nlohmann::json json{};
+	nlohmann::json json{};
 	for (auto& i : textures)
 	{
 		auto& root = json["frames"][i->name]["frame"];
@@ -120,14 +120,14 @@ void TexturePacker::writeJson()
 	}
 	std::ofstream file{ output + ".json" };
 	file << std::setw(2) << json;
-	file.close();   
+	file.close();
 }
 
 void TexturePacker::run()
 {
-    sf::Context context{};
+	sf::Context context{};
 
-    loadTextures();
-    pack();
-    writeJson();
+	loadTextures();
+	pack();
+	writeJson();
 }
