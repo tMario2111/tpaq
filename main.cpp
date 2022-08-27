@@ -20,9 +20,7 @@ int main(int argc, char* argv[])
     app.add_flag("--keep_extensions", tp.keep_extensions, "Keep texture extensions in .json file");
     app.add_flag("--recursive", tp.recursive, "Recursive directory search");
 
-    std::cout << "Got here1\n";
     CLI11_PARSE(app, argc, argv);
-    std::cout << "Got here2\n";
 
     tp.run();
 
