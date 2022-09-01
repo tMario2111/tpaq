@@ -29,14 +29,14 @@ void TexturePacker::loadTextures()
 	{
 		if (!std::filesystem::is_regular_file(file))
 		{
-			std::cout << "\"" << file << "\" is not a file, skipping it\n";
+			std::cerr << "\"" << file << "\" is not a file, skipping it\n";
 			continue;
 		}
 
 		textures.push_back(std::make_unique<TextureFile>());
 		if (!textures.back()->texture.loadFromFile(file))
 		{
-			std::cout << "The file with path \"" << file << "\" cannot be opened\n";
+			std::cerr << "The file with path \"" << file << "\" cannot be opened\n";
 			exit(EXIT_FAILURE);
 		}
 
@@ -87,13 +87,13 @@ void TexturePacker::pack()
 		else
 		{
 			success = false;
-			std::cout << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
+			std::cerr << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
 		}
 	}
 
 	if (!success)
 	{
-		std::cout << "Increase atlas size or remove some textures and try again\n";
+		std::cerr << "Increase atlas size or remove some textures and try again\n";
 		exit(EXIT_FAILURE);
 	}
 
@@ -107,20 +107,38 @@ void TexturePacker::pack()
 	texture.getTexture().copyToImage().saveToFile(output + ".png");
 }
 
-void TexturePacker::writeJson()
+void TexturePacker::writeDataFile()
 {
-	nlohmann::json json{};
-	for (auto& i : textures)
+	std::ifstream format_file{ "format.mustache" };
+	std::string format_string{ std::istreambuf_iterator<char>{ format_file }, std::istreambuf_iterator<char>{} };
+	format_file.close();
+
+	using namespace kainjow::mustache;
+	mustache format{ format_string };
+	if (!format.is_valid())
 	{
-		auto& root = json["frames"][i->name]["frame"];
-		root["x"] = static_cast<int>(i->sprite.getGlobalBounds().left);
-		root["y"] = static_cast<int>(i->sprite.getGlobalBounds().top);
-		root["w"] = static_cast<int>(i->sprite.getGlobalBounds().width);
-		root["h"] = static_cast<int>(i->sprite.getGlobalBounds().height);
+		std::cerr << "Format error: " << format.error_message() << '\n';
+		exit(EXIT_FAILURE);
 	}
-	std::ofstream file{ output + ".json" };
-	file << std::setw(2) << json;
-	file.close();
+
+	data rects{ data::type::list };
+
+	for (auto i = 0u; i < textures.size(); i++)
+	{
+		auto& texture = *textures[i];
+
+		data rect{};
+		rect["name"] = texture.name;
+		rect["x"] = std::to_string(static_cast<int>(texture.sprite.getGlobalBounds().left));
+		rect["y"] = std::to_string(static_cast<int>(texture.sprite.getGlobalBounds().top));
+		rect["w"] = std::to_string(static_cast<int>(texture.sprite.getGlobalBounds().width));
+		rect["h"] = std::to_string(static_cast<int>(texture.sprite.getGlobalBounds().height));
+		rect["last"] = (i == textures.size() - 1);
+		rects << rect;
+	}
+
+	std::ofstream output_file{ output + "." + extension };
+	output_file << format.render({ "rects", rects });
 }
 
 void TexturePacker::run()
@@ -129,5 +147,5 @@ void TexturePacker::run()
 
 	loadTextures();
 	pack();
-	writeJson();
+	writeDataFile();
 }

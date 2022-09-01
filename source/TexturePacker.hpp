@@ -1,7 +1,6 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
-
+#include "../mustache.hpp"
 #include <SFML/Graphics.hpp>
 
 #include <algorithm>
@@ -22,6 +21,7 @@ public:
 	std::string output;
 	unsigned int size;
 	unsigned int border = 0;
+	std::string extension = "json";
 
 	bool keep_extensions = false;
 	bool recursive = false;
@@ -40,5 +40,5 @@ private:
 
 	void loadTextures();
 	void pack();
-	void writeJson();
+	void writeDataFile();
 };
