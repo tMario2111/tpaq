@@ -154,9 +154,15 @@ void TexturePacker::writeDataFile()
 
 void TexturePacker::run()
 {
+    const auto t1 = std::chrono::high_resolution_clock::now();
+
     sf::Context context{};
 
     loadTextures();
     pack();
     writeDataFile();
+
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::ratio<1>> delta = t2 - t1;
+    std::cout << "Atlas created successfully. Process took " << delta.count() << " seconds\n";
 }
