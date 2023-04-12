@@ -29,14 +29,14 @@ void TexturePacker::loadTextures()
     {
         if (!std::filesystem::is_regular_file(file))
         {
-            std::cerr << "\"" << file << "\" is not a file, skipping it\n";
+            std::cout << "\"" << file << "\" is not a file, skipping it\n";
             continue;
         }
 
         textures.push_back(std::make_unique<TextureFile>());
         if (!textures.back()->texture.loadFromFile(file))
         {
-            std::cerr << "The file with path \"" << file << "\" cannot be opened\n";
+            std::cout << "The file with path \"" << file << "\" cannot be opened\n";
             exit(EXIT_FAILURE);
         }
 
@@ -87,13 +87,13 @@ void TexturePacker::pack()
         else
         {
             success = false;
-            std::cerr << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
+            std::cout << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
         }
     }
 
     if (!success)
     {
-        std::cerr << "Increase atlas size or remove some textures and try again\n";
+        std::cout << "Increase atlas size or remove some textures and try again\n";
         exit(EXIT_FAILURE);
     }
 
@@ -113,7 +113,7 @@ void TexturePacker::writeDataFile()
     std::ifstream format_file{ "format.mustache" };
     if (!format_file)
     {
-        std::cerr << "Could not find mustache format file. Defaulting to json\n";
+        std::cout << "Could not find mustache format file. Defaulting to json\n";
         std::string default_format_string_dump{ DEFAULT_MUSTACHE_FORMAT };
         format_string = default_format_string_dump;
     }
@@ -128,7 +128,7 @@ void TexturePacker::writeDataFile()
     mustache format{ format_string };
     if (!format.is_valid())
     {
-        std::cerr << "Format error: " << format.error_message() << '\n';
+        std::cout << "Format error: " << format.error_message() << '\n';
         exit(EXIT_FAILURE);
     }
 
