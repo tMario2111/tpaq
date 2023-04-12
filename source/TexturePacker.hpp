@@ -1,5 +1,7 @@
 #pragma once
 
+#include "DefaultFormat.hpp"
+
 #include "../mustache.hpp"
 #include <SFML/Graphics.hpp>
 

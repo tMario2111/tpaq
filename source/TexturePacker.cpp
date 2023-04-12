@@ -109,9 +109,20 @@ void TexturePacker::pack()
 
 void TexturePacker::writeDataFile()
 {
+    std::string format_string{};
     std::ifstream format_file{ "format.mustache" };
-    std::string format_string{ std::istreambuf_iterator<char>{ format_file }, std::istreambuf_iterator<char>{} };
-    format_file.close();
+    if (!format_file)
+    {
+        std::cerr << "Could not find mustache format file. Defaulting to json\n";
+        std::string default_format_string_dump{ DEFAULT_MUSTACHE_FORMAT };
+        format_string = default_format_string_dump;
+    }
+    else
+    {
+        std::string format_file_dump{ std::istreambuf_iterator<char>{ format_file }, std::istreambuf_iterator<char>{} };
+        format_string = format_file_dump;
+        format_file.close();
+    }
 
     using namespace kainjow::mustache;
     mustache format{ format_string };
