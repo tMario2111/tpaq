@@ -14,7 +14,7 @@ find_package(SFML COMPONENTS graphics system CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
 
-find_path(STB_INCLUDE_DIRS "stb_rect_pack.c")
+find_path(STB_INCLUDE_DIRS "stb_rect_pack.h")
 
 target_link_libraries(tpaq PRIVATE 
     sfml-graphics sfml-system
