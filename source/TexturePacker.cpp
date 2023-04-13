@@ -109,19 +109,52 @@ void TexturePacker::pack()
 
 void TexturePacker::writeDataFile()
 {
-    std::string format_string{};
-    std::ifstream format_file{ "format.mustache" };
-    if (!format_file)
+    std::string format_file_path{};
+    auto supported_os = true;
+
+    #if defined(_WIN32)
     {
-        std::cout << "Could not find mustache format file. Defaulting to json\n";
+        // Get "AppData\Local" using "AppData\Local\Temp"
+        // Should work for windows 7 and up
+        // Doing this so I can avoid calling Windows specific functions
+        auto path = std::filesystem::temp_directory_path().parent_path().parent_path();
+        path += "\\tpaq\\format.mustache"; // AppData\Local\tpaq\format.mustache
+        format_file_path = path.string();
+    }
+    // TODO: Test linux
+    #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+    {
+        format_file_path = "~/.config/tpaq/format.mustache";
+    }
+    #else
+    {
+        supported_os = false;
+    }
+    #endif
+
+    std::string format_string{};
+    if (supported_os)
+    {
+        std::ifstream format_file{ format_file_path };
+        if (!format_file)
+        {
+            std::cout << "Could not find mustache format file. Defaulting to json\n";
+            std::string default_format_string_dump{ DEFAULT_MUSTACHE_FORMAT };
+            format_string = default_format_string_dump;
+        }
+        else
+        {
+            std::string format_file_dump
+                { std::istreambuf_iterator<char>{ format_file }, std::istreambuf_iterator<char>{} };
+            format_string = format_file_dump;
+            format_file.close();
+        }
+    }
+    else // os is not supported
+    {
+        std::cout << "Could not find mustache format file because OS is not supported. Defaulting to json\n";
         std::string default_format_string_dump{ DEFAULT_MUSTACHE_FORMAT };
         format_string = default_format_string_dump;
-    }
-    else
-    {
-        std::string format_file_dump{ std::istreambuf_iterator<char>{ format_file }, std::istreambuf_iterator<char>{} };
-        format_string = format_file_dump;
-        format_file.close();
     }
 
     using namespace kainjow::mustache;
