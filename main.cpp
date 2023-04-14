@@ -17,6 +17,12 @@ int main(int argc, char* argv[])
     app.add_option("-s,--size", tp.size, "Output texture maximum size")->required();
     app.add_option("-b,--border", tp.border, "Border between textures (0 by default)");
     app.add_option("-e,--extension", tp.extension, "Data file extension (json by default)");
+    app.add_option("--backend", tp.backend, "Rect packing backend: stb / rp2d (stb by default)")
+        ->transform(
+            CLI::CheckedTransformer(std::map<std::string, TexturePacker::Backend>
+                {{"stb", TexturePacker::Backend::stb}, {"rp2d", TexturePacker::Backend::rp2d}},
+            CLI::ignore_case
+        ));
 
     app.add_flag("--keep_extensions", tp.keep_extensions, "Keep texture extensions in .json file");
     app.add_flag("--recursive", tp.recursive, "Recursive directory search");

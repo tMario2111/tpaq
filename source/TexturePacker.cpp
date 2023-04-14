@@ -49,7 +49,7 @@ void TexturePacker::loadTextures()
     }
 }
 
-void TexturePacker::pack()
+void TexturePacker::packUsingSTB()
 {
     stbrp_context context{};
     std::vector<stbrp_rect> rects{};
@@ -79,7 +79,7 @@ void TexturePacker::pack()
             size.y = rects[i].y + rects[i].h;
     }
 
-    bool success = true;
+    auto success = true;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
         if (rects[i].was_packed == 1)
@@ -87,15 +87,76 @@ void TexturePacker::pack()
         else
         {
             success = false;
-            std::cout << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
+            std::cerr << "Texture with name \"" << textures[i]->name << "\" did not fit\n";
         }
     }
 
     if (!success)
     {
-        std::cout << "Increase atlas size or remove some textures and try again\n";
+        std::cerr << "Increase atlas size or remove some textures and try again\n";
         exit(EXIT_FAILURE);
     }
+
+    sf::RenderTexture texture{};
+    texture.create(size.x, size.y);
+
+    texture.clear(sf::Color{ 0, 0, 0, 0 });
+    for (const auto& i : textures)
+        texture.draw(i->sprite);
+    texture.display();
+    texture.getTexture().copyToImage().saveToFile(output + ".png");
+}
+
+
+void TexturePacker::packUsingRP2D()
+{
+    using space_type = rectpack2D::empty_spaces<false, rectpack2D::default_empty_spaces>;
+    using rect_type = rectpack2D::output_rect_t<space_type>;
+
+    const auto report_successful = [](rect_type&)
+    {
+        return rectpack2D::callback_result::CONTINUE_PACKING;
+    };
+    const auto report_unsuccessful = [](rect_type&)
+    {
+        return rectpack2D::callback_result::ABORT_PACKING;
+    };
+
+    const auto discard_step = -4;
+
+    std::vector<rect_type> rects{};
+    for (auto i = 0u; i < textures.size(); i++)
+    {
+        rects.emplace_back(rectpack2D::rect_xywh{});
+        rects[i].x = 0;
+        rects[i].y = 0;
+        rects[i].w = textures[i]->texture.getSize().x + border;
+        rects[i].h = textures[i]->texture.getSize().y + border;
+    }
+
+    const auto result_size = rectpack2D::find_best_packing<space_type>(
+        rects,
+        rectpack2D::make_finder_input(
+            size,
+            discard_step,
+            report_successful,
+            report_unsuccessful,
+            rectpack2D::flipping_option::DISABLED
+        )
+    );
+
+    sf::Vector2i size{};
+    for (auto i = 0u; i < textures.size(); i++)
+    {
+        if (rects[i].x + rects[i].w > size.x)
+            size.x = rects[i].x + rects[i].w;
+        if (rects[i].y + rects[i].h > size.y)
+            size.y = rects[i].y + rects[i].h;
+    }
+
+    bool success = true;
+    for (unsigned int i = 0; i < textures.size(); i++)
+        textures[i]->sprite.setPosition(static_cast<float>(rects[i].x), static_cast<float>(rects[i].y));
 
     sf::RenderTexture texture{};
     texture.create(size.x, size.y);
@@ -192,7 +253,10 @@ void TexturePacker::run()
     sf::Context context{};
 
     loadTextures();
-    pack();
+    if (backend == TexturePacker::Backend::stb)
+        packUsingSTB();
+    else
+        packUsingRP2D();
     writeDataFile();
 
     const auto t2 = std::chrono::high_resolution_clock::now();

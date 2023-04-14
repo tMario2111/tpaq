@@ -3,6 +3,7 @@
 #include "DefaultFormat.hpp"
 
 #include "../mustache.hpp"
+#include "../rectpack2D/finders_interface.h"
 #include <SFML/Graphics.hpp>
 
 #include <algorithm>
@@ -25,6 +26,11 @@ public:
     unsigned int size;
     unsigned int border = 0;
     std::string extension = "json";
+    enum Backend
+    {
+        stb,
+        rp2d
+    } backend = Backend::stb;
 
     bool keep_extensions = false;
     bool recursive = false;
@@ -42,6 +48,7 @@ private:
     std::vector<std::unique_ptr<TextureFile>> textures;
 
     void loadTextures();
-    void pack();
+    void packUsingSTB();
+    void packUsingRP2D();
     void writeDataFile();
 };
