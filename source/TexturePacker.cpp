@@ -51,6 +51,7 @@ void TexturePacker::loadTextures()
 
 void TexturePacker::packUsingSTB()
 {
+    auto occupied_space = 0;
     stbrp_context context{};
     std::vector<stbrp_rect> rects{};
     for (auto i = 0u; i < textures.size(); i++)
@@ -62,13 +63,21 @@ void TexturePacker::packUsingSTB()
         rects[i].h = textures[i]->texture.getSize().y + border;
         rects[i].id = static_cast<int>(i);
         rects[i].was_packed = 0;
+        occupied_space += rects[i].w * rects[i].h;
     }
 
     std::vector<stbrp_node> nodes{};
     nodes.resize(size * 2);
     stbrp_init_target(&context, static_cast<int>(size), static_cast<int>(size),
         nodes.data(), static_cast<int>(size) * 2);
-    stbrp_pack_rects(&context, rects.data(), textures.size());
+
+    {
+        const auto t1 = std::chrono::high_resolution_clock::now();
+        stbrp_pack_rects(&context, rects.data(), textures.size());
+        const auto t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float, std::ratio<1>> delta = t2 - t1;
+        packing_duration = delta.count();
+    }
 
     sf::Vector2i size{};
     for (auto i = 0u; i < textures.size(); i++)
@@ -78,6 +87,8 @@ void TexturePacker::packUsingSTB()
         if (rects[i].y + rects[i].h > size.y)
             size.y = rects[i].y + rects[i].h;
     }
+
+    packing_ratio = static_cast<float>(occupied_space) / static_cast<float>(size.x * size.y) * 100.f;
 
     auto success = true;
     for (unsigned int i = 0; i < textures.size(); i++)
@@ -122,7 +133,9 @@ void TexturePacker::packUsingRP2D()
         return rectpack2D::callback_result::ABORT_PACKING;
     };
 
-    const auto discard_step = -4;
+    const auto discard_step = 1;
+
+    auto occupied_space = 0;
 
     std::vector<rect_type> rects{};
     for (auto i = 0u; i < textures.size(); i++)
@@ -132,8 +145,10 @@ void TexturePacker::packUsingRP2D()
         rects[i].y = 0;
         rects[i].w = textures[i]->texture.getSize().x + border;
         rects[i].h = textures[i]->texture.getSize().y + border;
+        occupied_space += rects[i].w * rects[i].h;
     }
 
+    const auto t1 = std::chrono::high_resolution_clock::now();
     const auto result_size = rectpack2D::find_best_packing<space_type>(
         rects,
         rectpack2D::make_finder_input(
@@ -144,22 +159,17 @@ void TexturePacker::packUsingRP2D()
             rectpack2D::flipping_option::DISABLED
         )
     );
+    const auto t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float, std::ratio<1>> delta = t2 - t1;
+    packing_duration = delta.count();
 
-    sf::Vector2i size{};
-    for (auto i = 0u; i < textures.size(); i++)
-    {
-        if (rects[i].x + rects[i].w > size.x)
-            size.x = rects[i].x + rects[i].w;
-        if (rects[i].y + rects[i].h > size.y)
-            size.y = rects[i].y + rects[i].h;
-    }
+    packing_ratio = static_cast<float>(occupied_space) / static_cast<float>(result_size.w * result_size.h) * 100.f;
 
-    bool success = true;
     for (unsigned int i = 0; i < textures.size(); i++)
         textures[i]->sprite.setPosition(static_cast<float>(rects[i].x), static_cast<float>(rects[i].y));
 
     sf::RenderTexture texture{};
-    texture.create(size.x, size.y);
+    texture.create(result_size.w, result_size.h);
 
     texture.clear(sf::Color{ 0, 0, 0, 0 });
     for (const auto& i : textures)
@@ -260,6 +270,9 @@ void TexturePacker::run()
     writeDataFile();
 
     const auto t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::ratio<1>> delta = t2 - t1;
-    std::cout << "Atlas created successfully. Process took " << delta.count() << " seconds\n";
+    std::chrono::duration<float, std::ratio<1>> delta = t2 - t1;
+    std::cout << "Atlas created successfully\n";
+    std::cout << "Process took " << delta.count() << " seconds\n";
+    std::cout << "Packing took " << packing_duration << " seconds\n";
+    std::cout << "Packing ration: " << packing_ratio << "%\n";
 }

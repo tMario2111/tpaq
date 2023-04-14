@@ -31,6 +31,8 @@ public:
         stb,
         rp2d
     } backend = Backend::stb;
+    float packing_duration;
+    float packing_ratio;
 
     bool keep_extensions = false;
     bool recursive = false;
