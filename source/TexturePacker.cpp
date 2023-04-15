@@ -280,5 +280,5 @@ void TexturePacker::run()
     std::cout << "Atlas created successfully\n";
     std::cout << "Process took " << delta.count() << " seconds\n";
     std::cout << "Packing took " << packing_duration << " seconds\n";
-    std::cout << "Packing ration: " << packing_ratio << "%\n";
+    std::cout << "Packing ratio: " << packing_ratio << "%\n";
 }
