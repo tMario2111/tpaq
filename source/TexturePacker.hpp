@@ -52,5 +52,6 @@ private:
     void loadTextures();
     void packUsingSTB();
     void packUsingRP2D();
+    void drawToImage(sf::Vector2i size);
     void writeDataFile();
 };

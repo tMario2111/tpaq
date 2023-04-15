@@ -108,14 +108,7 @@ void TexturePacker::packUsingSTB()
         exit(EXIT_FAILURE);
     }
 
-    sf::RenderTexture texture{};
-    texture.create(size.x, size.y);
-
-    texture.clear(sf::Color{ 0, 0, 0, 0 });
-    for (const auto& i : textures)
-        texture.draw(i->sprite);
-    texture.display();
-    texture.getTexture().copyToImage().saveToFile(output + ".png");
+    drawToImage(size);
 }
 
 
@@ -124,12 +117,15 @@ void TexturePacker::packUsingRP2D()
     using space_type = rectpack2D::empty_spaces<false, rectpack2D::default_empty_spaces>;
     using rect_type = rectpack2D::output_rect_t<space_type>;
 
+    auto success = true;
+
     const auto report_successful = [](rect_type&)
     {
         return rectpack2D::callback_result::CONTINUE_PACKING;
     };
-    const auto report_unsuccessful = [](rect_type&)
+    const auto report_unsuccessful = [&](rect_type&)
     {
+        success = false;
         return rectpack2D::callback_result::ABORT_PACKING;
     };
 
@@ -162,15 +158,25 @@ void TexturePacker::packUsingRP2D()
     const auto t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float, std::ratio<1>> delta = t2 - t1;
     packing_duration = delta.count();
+    
+    if (!success)
+    {
+        std::cout << "Some textures did not fit. Increase atlas size or remove some textures and try again\n";
+        exit(EXIT_FAILURE);
+    }
 
     packing_ratio = static_cast<float>(occupied_space) / static_cast<float>(result_size.w * result_size.h) * 100.f;
 
     for (unsigned int i = 0; i < textures.size(); i++)
         textures[i]->sprite.setPosition(static_cast<float>(rects[i].x), static_cast<float>(rects[i].y));
 
-    sf::RenderTexture texture{};
-    texture.create(result_size.w, result_size.h);
+    drawToImage(sf::Vector2i{ result_size.w, result_size.h });
+}
 
+void TexturePacker::drawToImage(sf::Vector2i size)
+{
+    sf::RenderTexture texture{};
+    texture.create(size.x, size.y);
     texture.clear(sf::Color{ 0, 0, 0, 0 });
     for (const auto& i : textures)
         texture.draw(i->sprite);
