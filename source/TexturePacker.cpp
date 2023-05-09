@@ -40,9 +40,11 @@ void TexturePacker::loadTextures()
             exit(EXIT_FAILURE);
         }
 
-        auto name = file.substr(file.find_last_of("/\\") + 1);
+        std::string name{};
         if (!keep_extensions)
-            name = name.substr(0, name.find_last_of('.'));
+            name = std::filesystem::path(file).stem().string();
+        else 
+            name = std::filesystem::path(file).filename().string();
         textures.back()->name = name;
 
         textures.back()->sprite.setTexture(textures.back()->texture);
